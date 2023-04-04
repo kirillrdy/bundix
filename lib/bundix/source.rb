@@ -20,10 +20,15 @@ class Bundix
       end
 
       begin
-        URI.open(uri.to_s, 'r', 0600, open_options) do |net|
+        copy = proc do |net|
           File.open(file, 'wb+') { |local|
             File.copy_stream(net, local)
           }
+        end
+        if File.size?(url)
+          URI.open(uri.to_s, 'r', 0600, &copy) 
+        else
+          URI.open(uri.to_s, 'r', 0600, open_options, &copy) 
         end
       rescue OpenURI::HTTPError => e
         # e.message: "403 Forbidden" or "401 Unauthorized"
